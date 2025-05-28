@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Notas Escolares</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .section {
+            background-color: white;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, select, button {
+            padding: 8px;
+            width: 100%;
+            box-sizing: border-box;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .aprovado {
+            color: green;
+            font-weight: bold;
+        }
+        .reprovado {
+            color: red;
+            font-weight: bold;
+        }
+        #resultadoContainer {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            display: none;
+        }
+        .resultado-aprovado {
+            background-color: #dff0d8;
+            border: 1px solid #d6e9c6;
+        }
+        .resultado-reprovado {
+            background-color: #f2dede;
+            border: 1px solid #ebccd1;
+        }
+    </style>
+</head>
+<body>
+    <h1>Sistema de Notas Escolares</h1>
+    
+    <div class="section">
+        <h2>Cadastrar Aluno</h2>
+        <div class="form-group">
+            <label for="nomeAluno">Nome do Aluno:</label>
+            <input type="text" id="nomeAluno" placeholder="Digite o nome do aluno">
+        </div>
+        <button id="btnCadastrar">Cadastrar Aluno</button>
+    </div>
+    
+    <div class="section">
+        <h2>Lançar Notas</h2>
+        <div class="form-group">
+            <label for="selecionarAluno">Selecione o Aluno:</label>
+            <select id="selecionarAluno">
+                <option value="">-- Selecione um aluno --</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="nota1">Nota da Avaliação 1:</label>
+            <input type="number" id="nota1" min="0" max="10" step="0.1" placeholder="Digite a nota 1">
+        </div>
+        
+        <div class="form-group">
+            <label for="nota2">Nota da Avaliação 2:</label>
+            <input type="number" id="nota2" min="0" max="10" step="0.1" placeholder="Digite a nota 2">
+        </div>
+        
+        <div class="form-group">
+            <label for="nota3">Nota da Avaliação 3:</label>
+            <input type="number" id="nota3" min="0" max="10" step="0.1" placeholder="Digite a nota 3">
+        </div>
+        
+        <div id="resultadoContainer">
+            <h3>Resultado:</h3>
+            <p>Aluno: <span id="resultadoAluno"></span></p>
+            <p>Média: <span id="resultadoMedia"></span></p>
+            <p>Situação: <span id="resultadoSituacao"></span></p>
+        </div>
+    </div>
+    
+    <div class="section">
+        <h2>Histórico</h2>
+        <table id="tabelaResultados">
+            <thead>
+                <tr>
+                    <th>Aluno</th>
+                    <th>Nota 1</th>
+                    <th>Nota 2</th>
+                    <th>Nota 3</th>
+                    <th>Média</th>
+                    <th>Situação</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Os resultados serão inseridos aqui via JavaScript -->
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        // Array para armazenar os alunos
+        let alunos = [];
+        
+        // Elementos do DOM
+        const inputNomeAluno = document.getElementById('nomeAluno');
+        const btnCadastrar = document.getElementById('btnCadastrar');
+        const selectAluno = document.getElementById('selecionarAluno');
+        const inputNota1 = document.getElementById('nota1');
+        const inputNota2 = document.getElementById('nota2');
+        const inputNota3 = document.getElementById('nota3');
+        const tabelaResultados = document.getElementById('tabelaResultados').getElementsByTagName('tbody')[0];
+        const resultadoContainer = document.getElementById('resultadoContainer');
+        const resultadoAluno = document.getElementById('resultadoAluno');
+        const resultadoMedia = document.getElementById('resultadoMedia');
+        const resultadoSituacao = document.getElementById('resultadoSituacao');
+        
+        // Evento de cadastro de aluno
+        btnCadastrar.addEventListener('click', function() {
+            const nome = inputNomeAluno.value.trim();
+            
+            if (nome) {
+                if (!alunos.includes(nome)) {
+                    alunos.push(nome);
+                    atualizarSelectAlunos();
+                    inputNomeAluno.value = '';
+                    alert('Aluno "' + nome + '" cadastrado com sucesso!');
+                } else {
+                    alert('Este aluno já está cadastrado!');
+                }
+            } else {
+                alert('Por favor, digite um nome válido para o aluno.');
+            }
+        });
+        
+        // Evento que verifica quando a terceira nota é inserida
+        inputNota3.addEventListener('input', function() {
+            const alunoSelecionado = selectAluno.value;
+            const nota1 = parseFloat(inputNota1.value);
+            const nota2 = parseFloat(inputNota2.value);
+            const nota3 = parseFloat(inputNota3.value);
+            
+            if (!alunoSelecionado) {
+                return;
+            }
+            
+            if (isNaN(nota1) || isNaN(nota2) || isNaN(nota3)) {
+                return;
+            }
+            
+            // Calcular média
+            const media = (nota1 + nota2 + nota3) / 3;
+            const situacao = media >= 6 ? 'Aprovado' : 'Reprovado';
+            
+            // Mostrar resultado imediato
+            resultadoAluno.textContent = alunoSelecionado;
+            resultadoMedia.textContent = media.toFixed(1);
+            resultadoSituacao.textContent = situacao;
+            
+            // Estilizar conforme situação
+            resultadoContainer.style.display = 'block';
+            resultadoContainer.className = media >= 6 ? 'resultado-aprovado' : 'resultado-reprovado';
+            resultadoSituacao.className = media >= 6 ? 'aprovado' : 'reprovado';
+            
+            // Adicionar ao histórico (tabela)
+            const newRow = tabelaResultados.insertRow(0); // Insere no topo da tabela
+            newRow.insertCell(0).textContent = alunoSelecionado;
+            newRow.insertCell(1).textContent = nota1.toFixed(1);
+            newRow.insertCell(2).textContent = nota2.toFixed(1);
+            newRow.insertCell(3).textContent = nota3.toFixed(1);
+            newRow.insertCell(4).textContent = media.toFixed(1);
+            
+            const situacaoCell = newRow.insertCell(5);
+            situacaoCell.textContent = situacao;
+            situacaoCell.className = media >= 6 ? 'aprovado' : 'reprovado';
+            
+            // Limpar campos para novo lançamento
+            inputNota1.value = '';
+            inputNota2.value = '';
+            inputNota3.value = '';
+            selectAluno.value = '';
+        });
+        
+        // Função para atualizar o select de alunos
+        function atualizarSelectAlunos() {
+            // Limpar select
+            selectAluno.innerHTML = '<option value="">-- Selecione um aluno --</option>';
+            
+            // Adicionar opções para cada aluno
+            alunos.forEach(function(aluno) {
+                const option = document.createElement('option');
+                option.value = aluno;
+                option.textContent = aluno;
+                selectAluno.appendChild(option);
+            });
+        }
+    </script>
+</body>
+</html>
